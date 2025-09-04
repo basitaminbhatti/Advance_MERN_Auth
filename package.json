@@ -1,0 +1,34 @@
+{
+  "name": "advance_mern_auth",
+  "version": "1.0.0",
+  "description": "- Create 2 Folders",
+  "main": "backend/index.js",
+  "scripts": {
+    "dev": "nodemon backend/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/basitaminbhatti/Advance_MERN_Auth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/basitaminbhatti/Advance_MERN_Auth/issues"
+  },
+  "homepage": "https://github.com/basitaminbhatti/Advance_MERN_Auth#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookies-parser": "^1.2.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mailtrap": "^4.2.0",
+    "mongoose": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
