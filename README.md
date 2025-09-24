@@ -390,7 +390,7 @@ export const signup = async (req, res) => {
 
 ---
 
-### JWT Token and Cookies
+## JWT Token and Cookies
 
 - Now for generating JWT token and setting it in cookies we create a new folder named `utils` inside the **backend** folder.
 - Inside the `utils` folder create a file named `generateTokenAndCookies.js` and add the following code:
@@ -586,4 +586,260 @@ export const sendWelcomeEmail = async (email, name) => {
 import { sendWelcomeEmail } from "../email/email.js";
 // Send Welcome Email
 await sendWelcomeEmail(user.email, user.name);
+```
+
+---
+
+## Login Controller
+
+- Now in controllers folder auth.controller.js we setup login process.
+  - First we check and validate the user input.
+  - Then we check if the user exists.
+  - Then we check if the password is correct.
+  - If everything is fine, we generate a JWT token and set it in cookies.
+  - Then we update the last login time.
+
+```javascript
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    // Check if all fields are provided
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    // Check if password is correct
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+    // JWT
+    generateTokenAndCookies(res, user._id);
+
+    // Update last login
+    user.lastlogin = Date.now();
+    await user.save();
+
+    res.status(200).json({ message: "Login successful" });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    res.status(500).json({ message: "Error logging in", error });
+  }
+};
+```
+
+---
+
+## Logout Controller
+
+- Now in controllers folder auth.controller.js we setup logout process.
+  - We clear the token cookie.
+
+```javascript
+export const logout = async (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logged out successfully" });
+};
+```
+
+---
+
+## Forgot Password
+
+- Now create a new route for forgot password in
+  **backend/routes/auth.route.js**:
+
+```javascript
+router.post("/forgot-password", forgotPassword);
+```
+
+- Now create the `forgotPassword` controller in
+  **backend/controllers/auth.controller.js**:
+- We check if the email is provided.
+- We check if the user exists.
+- We generate a reset token and set its expiry.
+- We send a password reset email with the reset link.
+
+```javascript
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    // Check if email is provided
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Generate Reset Token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpireAt = Date.now() + 3600000; // 1 hour expiry
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpireAt = resetTokenExpireAt;
+
+    await user.save();
+
+    // Send Reset Email
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    await sendPasswordResetEmail(email, resetLink);
+
+    res.status(200).json({ message: "Password reset email sent" });
+  } catch (error) {
+    console.error("Error in forgot password:", error);
+    res.status(500).json({ message: "Error in forgot password", error });
+  }
+};
+```
+
+### Password Reset Email
+
+- For Password Reset email add the following function in `email.js`:
+
+```javascript
+export const sendPasswordResetEmail = async (email, resetLink) => {
+  const text = `You requested a password reset. Use the following link to reset your password: ${resetLink}. If you did not request this, please ignore this email.`;
+  const recipients = [{ email }];
+  try {
+    const response = await client.send({
+      from: sender,
+      to: recipients,
+      subject: "Password Reset Request",
+      text,
+    });
+    console.log("Password reset email sent", response);
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+  }
+};
+```
+
+- Now import and use this function in `forgotPassword` controller in
+  **backend/controllers/auth.controller.js**:
+
+```javascript
+import { sendPasswordResetEmail } from "../email/email.js";
+```
+
+---
+
+## Reset Password Controller
+
+- Now create a new route for reset password in
+  **backend/routes/auth.route.js**:
+
+```javascript
+router.post("/reset-password/:token", resetPassword);
+```
+
+- Now create the `resetPassword` controller in
+  **backend/controllers/auth.controller.js**:
+- We get the token from params and new password from body.
+- We check if the token is valid and not expired.
+- We hash the new password and update the user record.
+
+```javascript
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+  try {
+    // Check if new password is provided
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required" });
+    }
+    // Find user by reset token and check if token is not expired
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpireAt: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpireAt = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ message: "Error resetting password", error });
+  }
+};
+```
+
+---
+
+## Check Auth Middleware
+
+- Now create a new route for checking authentication in
+  **backend/routes/auth.route.js**:
+
+```javascript
+router.get("/check-auth", verifyToken, checkAuth);
+```
+
+- Now we create a new folder named `middleware` inside the **backend** folder.
+- Inside the `middleware` folder create a file named `verifyToken.js` and add the following code:
+
+```javascript
+import jwt from "jsonwebtoken";
+
+export const verifyToken = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: "No token, authorization denied" });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      return res.status(401).json({ message: "Token is not valid" });
+    }
+    req.userId = decoded.id;
+    next();
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    res.status(500).json({ message: "Error verifying token", error });
+  }
+};
+```
+
+Add `cookie-parser` middleware in **backend/index.js** to parse cookies:
+
+```javascript
+import cookieParser from "cookie-parser";
+
+app.use(cookieParser()); // Middleware to parse cookies
+```
+
+- Now create the `checkAuth` controller in
+  **backend/controllers/auth.controller.js**:
+- We simply return a success message if the user is authenticated.
+
+```javascript
+export const checkAuth = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error checking auth:", error);
+    res.status(500).json({ message: "Error checking auth", error });
+  }
+};
 ```
