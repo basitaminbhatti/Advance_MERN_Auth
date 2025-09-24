@@ -14,6 +14,8 @@ Create two main folders:
 
 ---
 
+# Backend Setup
+
 ## Initialize Backend
 
 1.  Create a `package.json` file:
@@ -842,4 +844,567 @@ export const checkAuth = async (req, res) => {
     res.status(500).json({ message: "Error checking auth", error });
   }
 };
+```
+
+# Frontend Setup
+
+## Initialize Frontend
+
+1.  Navigate to the **frontend** folder.
+2.  Create a React app using Vite:
+
+```bash
+npm create vite@latest . -- --template react
+```
+
+3. Tailwind CSS Setup
+
+```bash
+npm install tailwindcss @tailwindcss/vite
+```
+
+4. Configure the Vite plugin
+
+- In `vite.config.js`, add the Tailwind CSS plugin:
+
+```javascript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
+```
+
+5. In index.css, add the Tailwind directives:
+
+```css
+@import "tailwindcss";
+```
+
+6. Install additional dependencies:
+
+```bash
+npm install framer-motion react-router-dom lucide-react
+```
+
+7. In `main.jsx`, wrap the App component with **BrowserRouter**:
+
+```javascript
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import "./index.css";
+import App from "./App.jsx";
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>
+);
+```
+
+## Frontend Background
+
+- Create a folder named `components` inside the **frontend/src** folder.
+- Inside the `components` folder create a file named `FloatingShape.jsx` and add the following code:
+
+```javascript
+import { motion } from "framer-motion";
+
+const FloatingShape = ({ color, size, top, left, delay }) => {
+  return (
+    <motion.div
+      className={`absolute rounded-full ${color} ${size} opacity-20 blur-xl`}
+      style={{ top, left }}
+      animate={{
+        y: ["0%", "100%", "0%"],
+        x: ["0%", "100%", "0%"],
+        rotate: [0, 360],
+      }}
+      transition={{
+        duration: 20,
+        ease: "linear",
+        repeat: Infinity,
+        delay,
+      }}
+      aria-hidden="true"
+    />
+  );
+};
+export default FloatingShape;
+```
+
+- Now in **frontend/src/App.jsx** import and use the `FloatingShape` component to create a dynamic background:
+
+```jsx
+import React from "react";
+import FloatingShape from "./components/FloatingShape";
+
+function App() {
+  return (
+    <div
+      className="min-h-screen bg-gradient-to-br
+    from-gray-900 via-blue-900 to-cyan-900 flex items-center justify-center relative overflow-hidden"
+    >
+      <FloatingShape
+        color="bg-blue-500"
+        size="w-64 h-64"
+        top="-5%"
+        left="10%"
+        delay={0}
+      />
+      <FloatingShape
+        color="bg-cyan-500"
+        size="w-48 h-48"
+        top="70%"
+        left="80%"
+        delay={5}
+      />
+      <FloatingShape
+        color="bg-lime-500"
+        size="w-32 h-32"
+        top="40%"
+        left="-10%"
+        delay={2}
+      />
+      App
+    </div>
+  );
+}
+
+export default App;
+```
+
+## React Router Setup
+
+- Now in **frontend/src/App.jsx** set up the routes using React Router:
+
+```jsx
+import { Routes, Route } from "react-router-dom";
+
+<Routes>
+  <Route path="/" element={<DashboardPage />} />
+  <Route path="/login" element={<LoginPage />} />
+  <Route path="/signup" element={<SignupPage />} />
+  <Route path="/verify-email" element={<VerifyEmailPage />} />
+  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+  <Route path="/reset-password" element={<ResetPasswordPage />} />
+  <Route path="*" element={<NotFoundPage />} />
+</Routes>;
+```
+
+## Create Page Components
+
+- Create a folder named `pages` inside the **frontend/src** folder.
+- Inside the `pages` folder create the following files:
+  - `DashboardPage.jsx`
+  - `LoginPage.jsx`
+  - `SignupPage.jsx`
+  - `VerifyEmailPage.jsx`
+  - `ForgotPasswordPage.jsx`
+  - `ResetPasswordPage.jsx`
+  - `NotFoundPage.jsx`
+- Add basic structure to each page component. For example, in `LoginPage.jsx`:
+
+```jsx
+import React from "react";
+const LoginPage = () => {
+  return (
+    <div className="text-white text-3xl">
+      <h1>Login Page</h1>
+    </div>
+  );
+};
+export default LoginPage;
+```
+
+- Repeat similar structure for other page components.
+- Import all page components in **frontend/src/App.jsx**:
+
+```jsx
+import DashboardPage from "./pages/DashboardPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import NotFoundPage from "./pages/NotFoundPage";
+```
+
+## Signup Page Layout
+
+- Now in **frontend/src/pages/SignupPage.jsx** create a signup form layout:
+
+```jsx
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { User, Mail, Lock } from "lucide-react";
+import Input from "../components/Input";
+import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
+import { Link } from "react-router-dom";
+
+function SignupPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl 
+			overflow-hidden"
+    >
+      <div className="p-8">
+        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-500 text-transparent bg-clip-text">
+          Create Account
+        </h2>
+        <form>
+          <Input
+            icon={User}
+            type="text"
+            placeholder="Full Name"
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            icon={Mail}
+            type="email"
+            placeholder="Email Address"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            icon={Lock}
+            type="password"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <PasswordStrengthMeter password={password} />
+          <motion.button
+            className="mt-5 w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white 
+						font-bold rounded-lg shadow-lg hover:from-blue-600
+						hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+						 focus:ring-offset-gray-900 transition duration-200 cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+          >
+            Sign Up
+          </motion.button>
+        </form>
+      </div>
+      <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
+        <p className="text-sm text-gray-400">
+          Already have an account?{" "}
+          <Link to={"/login"} className="text-blue-400 hover:underline">
+            Login
+          </Link>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+export default SignupPage;
+```
+
+- Create an `Input` component in **frontend/src/components/Input.jsx**:
+
+```javascript
+const Input = ({ icon: Icon, ...props }) => {
+  return (
+    <div className="relative mb-6">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <Icon className="size-5 text-blue-500" />
+      </div>
+      <input
+        {...props}
+        className="w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400 transition duration-200"
+      />
+    </div>
+  );
+};
+export default Input;
+```
+
+- Create a `PasswordStrengthMeter` component in **frontend/src/components/PasswordStrengthMeter.jsx**:
+
+```jsx
+import { Check, X } from "lucide-react";
+
+const PasswordCriteria = ({ password }) => {
+  const criteria = [
+    { label: "At least 6 characters", met: password.length >= 6 },
+    { label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "Contains lowercase letter", met: /[a-z]/.test(password) },
+    { label: "Contains a number", met: /\d/.test(password) },
+    { label: "Contains special character", met: /[^A-Za-z0-9]/.test(password) },
+  ];
+
+  return (
+    <div className="mt-2 space-y-1">
+      {criteria.map((item) => (
+        <div key={item.label} className="flex items-center text-xs">
+          {item.met ? (
+            <Check className="size-4 text-blue-500 mr-2" />
+          ) : (
+            <X className="size-4 text-gray-500 mr-2" />
+          )}
+          <span className={item.met ? "text-blue-500" : "text-gray-400"}>
+            {item.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const PasswordStrengthMeter = ({ password }) => {
+  const getStrength = (pass) => {
+    let strength = 0;
+    if (pass.length >= 1) strength++;
+    if (pass.match(/[a-z]/) && pass.match(/[A-Z]/)) strength++;
+    if (pass.match(/\d/)) strength++;
+    if (pass.match(/[^a-zA-Z\d]/)) strength++;
+    return strength;
+  };
+  const strength = getStrength(password);
+
+  const getColor = (strength) => {
+    if (strength === 0) return "bg-red-500";
+    if (strength === 1) return "bg-red-400";
+    if (strength === 2) return "bg-yellow-500";
+    if (strength === 3) return "bg-yellow-400";
+    return "bg-blue-500";
+  };
+
+  const getStrengthText = (strength) => {
+    if (strength === 0) return "Very Weak";
+    if (strength === 1) return "Weak";
+    if (strength === 2) return "Fair";
+    if (strength === 3) return "Good";
+    return "Strong";
+  };
+
+  return (
+    <div className="mt-2">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs text-gray-400">Password strength</span>
+        <span className="text-xs text-gray-400">
+          {getStrengthText(strength)}
+        </span>
+      </div>
+
+      <div className="flex space-x-1">
+        {[...Array(4)].map((_, index) => (
+          <div
+            key={index}
+            className={`h-1 w-1/4 rounded-full transition-colors duration-300 
+                ${index < strength ? getColor(strength) : "bg-gray-600"}
+              `}
+          />
+        ))}
+      </div>
+      <PasswordCriteria password={password} />
+    </div>
+  );
+};
+export default PasswordStrengthMeter;
+```
+
+## Login Page Layout
+
+- Now in **frontend/src/pages/LoginPage.jsx** create a login form layout:
+
+```jsx
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Mail, Lock } from "lucide-react";
+import Input from "../components/Input";
+import { Link } from "react-router-dom";
+
+function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl 
+      overflow-hidden"
+    >
+      <div className="p-8">
+        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-500 text-transparent bg-clip-text">
+          Welcome Back
+        </h2>
+        <form>
+          <Input
+            icon={Mail}
+            type="email"
+            placeholder="Email Address"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            icon={Lock}
+            type="password"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="flex items-center justify-between mt-2 mb-4">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-400 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <motion.button
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200 cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+          >
+            Login
+          </motion.button>
+        </form>
+      </div>
+      <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
+        <p className="text-sm text-gray-400">
+          Don't have an account?{" "}
+          <Link to={"/signup"} className="text-blue-400 hover:underline">
+            Sign Up
+          </Link>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+export default LoginPage;
+```
+
+## Verify Email Page Layout
+
+- Now in **frontend/src/pages/VerifyEmailPage.jsx** create a verify email form layout:
+
+```jsx
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+function VerifyEmailPage() {
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef([]);
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ===================== Auto Focus First Input =====================
+  useEffect(() => {
+    if (inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, []);
+
+  // ===================== Handle Change =====================
+  const handleChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return; // Only digits allowed
+
+    const newCode = [...code];
+    newCode[index] = value.slice(-1); // Only keep the last digit
+    setCode(newCode);
+
+    // Handle pasted content (if more than one digit entered)
+    if (value.length > 1) {
+      const pastedCode = value.slice(0, 6).split("");
+      for (let i = 0; i < 6; i++) {
+        newCode[i] = pastedCode[i] || "";
+      }
+      setCode(newCode);
+
+      // Focus the last filled input
+      const lastIndex = Math.min(pastedCode.length, 6) - 1;
+      inputRefs.current[lastIndex]?.focus();
+    } else {
+      // Move focus to the next input if value is entered
+      if (value && index < 5) {
+        inputRefs.current[index + 1].focus();
+      }
+    }
+  };
+
+  // ===================== Handle Key Down =====================
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  // ===================== Handle Submit =====================
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const verificationCode = code.join("");
+    alert(`Verification Code Entered: ${verificationCode}`);
+    setIsLoading(true);
+    // You can call your API here
+  };
+
+  // ===================== Auto Submit When All Digits Are Entered =====================
+  useEffect(() => {
+    if (code.every((digit) => digit !== "")) {
+      handleSubmit();
+    }
+  }, [code]);
+
+  return (
+    <div className="max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-md"
+      >
+        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-500 text-transparent bg-clip-text">
+          Verify Your Email
+        </h2>
+        <p className="text-center text-gray-300 mb-6">
+          Enter the 6-digit code sent to your email address.
+        </p>
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="flex justify-between">
+            {code.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => (inputRefs.current[index] = el)}
+                type="text"
+                maxLength="1" // FIXED: only one digit per box
+                value={digit}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className="w-12 h-12 text-center text-2xl font-bold bg-gray-700 text-white border-2 border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none"
+              />
+            ))}
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="submit"
+            disabled={isLoading || code.some((digit) => !digit)}
+            className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:from-blue-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 cursor-pointer"
+          >
+            {isLoading ? "Verifying..." : "Verify Email"}
+          </motion.button>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
+export default VerifyEmailPage;
 ```
