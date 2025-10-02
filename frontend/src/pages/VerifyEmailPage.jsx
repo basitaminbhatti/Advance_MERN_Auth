@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+import { useAuthStore } from "../../store/useAuthStore";
+
 function VerifyEmailPage() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+
+  // ===================== Zustand Store =====================
+  const { verifyEmail, error, isLoading } = useAuthStore();
 
   // ===================== Auto Focus First Input =====================
   useEffect(() => {
@@ -53,9 +57,12 @@ function VerifyEmailPage() {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     const verificationCode = code.join("");
-    alert(`Verification Code Entered: ${verificationCode}`);
-    setIsLoading(true);
-    // You can call your API here
+    try {
+      await verifyEmail(verificationCode);
+      navigate("/");
+    } catch (err) {
+      console.error("Verification failed:", err);
+    }
   };
 
   // ===================== Auto Submit When All Digits Are Entered =====================
@@ -95,6 +102,7 @@ function VerifyEmailPage() {
               />
             ))}
           </div>
+          {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

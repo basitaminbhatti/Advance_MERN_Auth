@@ -36,6 +36,12 @@ npm install express cookie-parser mailtrap bcryptjs dotenv jsonwebtoken mongoose
 npm install nodemon -D
 ```
 
+4. Install `cors` for handling cross-origin requests:
+
+```bash
+npm install cors
+```
+
 ---
 
 ## Setup Backend
@@ -992,7 +998,7 @@ import { Routes, Route } from "react-router-dom";
   <Route path="/signup" element={<SignupPage />} />
   <Route path="/verify-email" element={<VerifyEmailPage />} />
   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-  <Route path="/reset-password" element={<ResetPasswordPage />} />
+  <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
   <Route path="*" element={<NotFoundPage />} />
 </Routes>;
 ```
@@ -1407,4 +1413,657 @@ function VerifyEmailPage() {
 }
 
 export default VerifyEmailPage;
+```
+
+## Dashboard Page Layout
+
+- Now in **frontend/src/pages/DashboardPage.jsx** create a dashboard layout:
+
+```jsx
+import { motion } from "framer-motion";
+
+const DashboardPage = () => {
+  const user = {
+    name: "John Doe",
+    email: "john.doe@example.com",
+    createdAt: "2023-01-15T10:00:00Z",
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-md w-full mx-auto mt-10 p-8 bg-gray-900 bg-opacity-80 backdrop-filter backdrop-blur-lg rounded-xl shadow-2xl border border-gray-800"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-600 text-transparent bg-clip-text">
+        Dashboard
+      </h2>
+
+      <div className="space-y-6">
+        <motion.div
+          className="p-4 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h3 className="text-xl font-semibold text-blue-400 mb-3">
+            Profile Information
+          </h3>
+          <p className="text-gray-300">Name: {user.name}</p>
+          <p className="text-gray-300">Email: {user.email}</p>
+        </motion.div>
+        <motion.div
+          className="p-4 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h3 className="text-xl font-semibold text-blue-400 mb-3">
+            Account Activity
+          </h3>
+          <p className="text-gray-300">
+            <span className="font-bold">Joined: </span>
+            {new Date(user.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+          <p className="text-gray-300">
+            <span className="font-bold">Last Login: </span>
+            {new Date().toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </motion.div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="mt-4"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white 
+				font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-cyan-700
+				 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+        >
+          Logout
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+};
+export default DashboardPage;
+```
+
+## Forgot Password Page Layout
+
+- Now in **frontend/src/pages/ForgotPasswordPage.jsx** create a forgot password form layout:
+
+```jsx
+import { motion } from "framer-motion";
+import { useState } from "react";
+import Input from "../components/Input";
+import { ArrowLeft, Loader, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const ForgotPasswordPage = () => {
+  const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const isLoading = false;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Forgot password link sent to:", email);
+    setIsSubmitted(true);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden"
+    >
+      <div className="p-8">
+        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-500 text-transparent bg-clip-text">
+          Forgot Password
+        </h2>
+
+        {!isSubmitted ? (
+          <form onSubmit={handleSubmit}>
+            <p className="text-gray-300 mb-6 text-center">
+              Enter your email address and we'll send you a link to reset your
+              password.
+            </p>
+            <Input
+              icon={Mail}
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200"
+              type="submit"
+            >
+              {isLoading ? (
+                <Loader className="size-6 animate-spin mx-auto" />
+              ) : (
+                "Send Reset Link"
+              )}
+            </motion.button>
+          </form>
+        ) : (
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <Mail className="h-8 w-8 text-white" />
+            </motion.div>
+            <p className="text-gray-300 mb-6">
+              If an account exists for {email}, you will receive a password
+              reset link shortly.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
+        <Link
+          to={"/login"}
+          className="text-sm text-blue-400 hover:underline flex items-center"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Login
+        </Link>
+      </div>
+    </motion.div>
+  );
+};
+export default ForgotPasswordPage;
+```
+
+## Reset Password Page Layout
+
+- Now in **frontend/src/pages/ResetPasswordPage.jsx** create a reset password form layout:
+
+```jsx
+import { useState } from "react";
+import { motion } from "framer-motion";
+import Input from "../components/Input";
+import { Lock } from "lucide-react";
+
+const ResetPasswordPage = () => {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const isLoading = false;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+    console.log("Password has been reset to:", password);
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden"
+    >
+      <div className="p-8">
+        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-500 text-transparent bg-clip-text">
+          Reset Password
+        </h2>
+
+        <form onSubmit={handleSubmit}>
+          <Input
+            icon={Lock}
+            type="password"
+            placeholder="New Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <Input
+            icon={Lock}
+            type="password"
+            placeholder="Confirm New Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200"
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? "Resetting..." : "Set New Password"}
+          </motion.button>
+        </form>
+      </div>
+    </motion.div>
+  );
+};
+export default ResetPasswordPage;
+```
+
+## Zustand Store Setup
+
+```bash
+npm install zustand axios
+```
+
+- Now create a folder named `store` inside the **frontend/src** folder.
+- Inside the `store` folder create a file named `useAuthStore.js` and add the following code:
+
+```javascript
+import { create } from "zustand";
+import axios from "axios";
+
+const API_URL = "http://localhost:5000/api/auth";
+
+axios.defaults.withCredentials = true; // Enable sending cookies with requests
+
+export const useAuthStore = create((set) => ({
+  user: null,
+  isAuthenticated: false,
+  error: null,
+  isLoading: false,
+  isCheckingAuth: true,
+}));
+```
+
+- Add `cors` middleware in **backend/index.js** to handle cross-origin requests:
+
+```javascript
+import cors from "cors";
+
+app.use(cors({ origin: "http://localhost:5173", credentials: true })); // Middleware to enable CORS
+```
+
+## Signup Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  signup: async (email, password, name) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/signup`, {
+        email,
+        password,
+        name,
+      });
+      set({
+        isLoading: false,
+        user: response.data.user,
+        isAuthenticated: true,
+      });
+    } catch (error) {
+      set({ isLoading: false, error: error.response.data.message });
+      throw error;
+    }
+  },
+```
+
+- Now you can use this store in your components. For example, in `SignupPage.jsx`:
+
+```jsx
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/useAuthStore";
+
+const { signup, error, isLoading } = useAuthStore();
+
+const navigate = useNavigate();
+
+const handleSignup = async (e) => {
+  e.preventDefault();
+  try {
+    await signup(email, password, name);
+    navigate("/verify-email");
+  } catch (error) {
+    console.error("Signup failed:", error);
+  }
+};
+```
+
+## Verify Email Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  verifyEmail: async (code) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/verify-email`, { code });
+      set({
+        isLoading: false,
+        user: response.data.user,
+        isAuthenticated: true,
+      });
+      return response;
+    } catch (error) {
+      set({ isLoading: false, error: error.response.data.message });
+      throw error;
+    }
+  },
+```
+
+- Now you can use this store in your components. For example, in `VerifyEmailPage.jsx`:
+
+```jsx
+import { useAuthStore } from "../../store/useAuthStore";
+const { verifyEmail, error, isLoading } = useAuthStore();
+
+const handleSubmit = async (e) => {
+  if (e) e.preventDefault();
+  const verificationCode = code.join("");
+  try {
+    await verifyEmail(verificationCode);
+    navigate("/");
+  } catch (err) {
+    console.error("Verification failed:", err);
+  }
+};
+```
+
+## Check Auth Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  checkAuth: async () => {
+    set({ isCheckingAuth: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/check-auth`);
+      set({
+        isCheckingAuth: false,
+        user: response.data.user,
+        isAuthenticated: true,
+      });
+    } catch (error) {
+      set({ isCheckingAuth: false, user: null, isAuthenticated: false });
+      throw error;
+    }
+  },
+```
+
+- Now you can use this store in your components. For example, in `App.jsx`:
+
+```jsx
+import { useEffect } from "react";
+import { useAuthStore } from "./store/useAuthStore";
+
+const { checkAuth, isCheckingAuth, isAuthenticated } = useAuthStore();
+
+useEffect(() => {
+  checkAuth();
+}, [checkAuth]);
+
+console.log("Auth Status:", { isCheckingAuth, isAuthenticated });
+```
+
+- Now you can protect your routes based on authentication status. For example, in `App.jsx`:
+
+```jsx
+// protect routes that require authentication
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!user.isVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  return children;
+};
+// redirect authenticated users away from login/signup pages
+const RedirectAuthenticatedUser = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (isAuthenticated && user.isVerified) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+<Route
+  path="/"
+  element={
+    <ProtectedRoute>
+      <DashboardPage />
+    </ProtectedRoute>
+  }
+/>;
+<Route
+  path="/signup"
+  element={
+    <RedirectAuthenticatedUser>
+      <SignUpPage />
+    </RedirectAuthenticatedUser>
+  }
+/>;
+```
+
+- Add loading state in `App.jsx`:
+
+```jsx
+import LoadingSpinner from "./components/LoadingSpinner";
+
+if (isCheckingAuth) {
+  return <LoadingSpinner />;
+}
+```
+
+## Login Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  login: async (email, password) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/login`, {
+        email,
+        password,
+      });
+      set({
+        isLoading: false,
+        user: response.data.user,
+        isAuthenticated: true,
+      });
+    } catch (error) {
+      set({ isLoading: false, error: error.response.data.message });
+      throw error;
+    }
+  },
+```
+
+- Now you can use this store in your components. For example, in `LoginPage.jsx`:
+
+```jsx
+import { useAuthStore } from "../../store/useAuthStore";
+
+const { login, error, isLoading } = useAuthStore();
+
+const handleLogin = async (e) => {
+  e.preventDefault();
+  await login(email, password);
+};
+```
+
+## Logout Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  logout: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await axios.post(`${API_URL}/logout`);
+      set({
+        isLoading: false,
+        user: null,
+        isAuthenticated: false,
+        error: null,
+      });
+    } catch (error) {
+      set({ isLoading: false, error: error.response.data.message });
+      throw error;
+    }
+  },
+```
+
+## Forgot Password Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  forgotPassword: async (email) => {
+    set({ isLoading: true, error: null, message: null });
+    try {
+      const response = await axios.post(`${API_URL}/forgot-password`, {
+        email,
+      });
+      set({ message: response.data.message, isLoading: false });
+      return response;
+    } catch (error) {
+      set({ isLoading: false, error: error.response.data.message });
+      throw error;
+    }
+  },
+```
+
+- Now you can use this store in your components. For example, in `ForgotPasswordPage.jsx`:
+
+```jsx
+import { useAuthStore } from "../../store/useAuthStore";
+const { forgotPassword, error, isLoading } = useAuthStore();
+const { isLoading, forgotPassword } = useAuthStore();
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  await forgotPassword(email);
+  setIsSubmitted(true);
+};
+```
+
+## Reset Password Action
+
+- In `useAuthStore.js` and add the following code:
+
+```javascript
+  resetPassword: async (token, password) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/reset-password/${token}`, {
+        password,
+      });
+      set({ message: response.data.message, isLoading: false });
+      return response;
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error.response.data.message || "Error resetting password",
+      });
+      throw error;
+    }
+  },
+```
+
+- Now you can use this store in your components. For example, in `ResetPasswordPage.jsx`:
+
+```jsx
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate, useParams } from "react-router-dom";
+
+const { resetPassword, error, isLoading, message } = useAuthStore();
+
+const { token } = useParams();
+const navigate = useNavigate();
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+  try {
+    await resetPassword(token, password);
+    navigate("/login");
+  } catch (err) {
+    console.error("Reset password failed:", err);
+  }
+};
+```
+
+## Dashboard Setup
+
+- Create a util function to format date in **frontend/src/utils/formatDate.js**:
+
+```javascript
+export const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
+
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+```
+
+- In `DashboardPage.jsx` use the user data from the store:
+
+```jsx
+import { useAuthStore } from "../../store/useAuthStore";
+const { user } = useAuthStore();
+```
+
+- Logout button functionality:
+
+```jsx
+const { user, logout } = useAuthStore();
+
+const handleLogout = async () => {
+  try {
+    await logout();
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
 ```

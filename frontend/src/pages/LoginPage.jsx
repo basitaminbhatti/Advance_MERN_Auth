@@ -2,11 +2,19 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock } from "lucide-react";
 import Input from "../components/Input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/useAuthStore";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { login, error, isLoading } = useAuthStore();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    await login(email, password);
+  };
 
   return (
     <motion.div
@@ -20,7 +28,7 @@ function LoginPage() {
         <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-500 text-transparent bg-clip-text">
           Welcome Back
         </h2>
-        <form>
+        <form onSubmit={handleLogin}>
           <Input
             icon={Mail}
             type="email"
@@ -41,13 +49,15 @@ function LoginPage() {
               Forgot password?
             </Link>
           </div>
+          {error && <p className="my-4 text-sm text-red-500">{error}</p>}
           <motion.button
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200 cursor-pointer"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </motion.button>
         </form>
       </div>
