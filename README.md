@@ -2067,3 +2067,43 @@ const handleLogout = async () => {
   }
 };
 ```
+
+# Deployment
+
+- We will deploy the backend and frontend applications using Render.com
+
+- Create a script to start both backend and frontend servers in **package.json**:
+
+```json
+"scripts": {
+		"dev": "NODE_ENV=development nodemon backend/index.js",
+		"start": "NODE_ENV=production node backend/index.js",
+		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+	},
+```
+
+- In `index.js` import the `path` module and add the following code to serve the React build files in production:
+
+```javascript
+import path from "path";
+
+const __dirname = path.resolve();
+
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "frontend", "dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  });
+}
+```
+
+- Now in "useAuthStore.js" change the `API_URL` to:
+
+```javascript
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/auth"
+    : "/api/auth";
+```

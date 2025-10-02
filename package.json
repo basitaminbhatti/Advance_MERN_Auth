@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "- Create 2 Folders",
   "main": "backend/index.js",
-  "scripts": {
-    "dev": "nodemon backend/index.js"
-  },
+"scripts": {
+		"dev": "NODE_ENV=development nodemon backend/index.js",
+		"start": "NODE_ENV=production node backend/index.js",
+		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+	},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/basitaminbhatti/Advance_MERN_Auth.git"
