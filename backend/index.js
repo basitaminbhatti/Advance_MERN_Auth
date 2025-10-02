@@ -10,7 +10,12 @@ const app = express();
 
 dotenv.config();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true })); // Middleware to enable CORS
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
@@ -29,7 +34,8 @@ const __dirname = path.resolve();
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend", "dist")));
 
-  app.get("*", (req, res) => {
+  // Catch-all route must use /* or regex in Express 5
+  app.get("/*", (req, res) => {
     res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
   });
 }
